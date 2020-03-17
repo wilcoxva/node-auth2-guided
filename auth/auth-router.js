@@ -1,5 +1,6 @@
 const express = require("express")
 const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
 const Users = require("../users/users-model")
 const restrict = require("../middleware/restrict")
 
@@ -40,6 +41,18 @@ router.post("/login", async (req, res, next) => {
 			return res.status(401).json(authError)
 		}
 
+		// This data gets encoded into our JWT for use in later requests
+		const payload = {
+			userId: user.id,
+			userRole: "admin", // this would normally come from a database
+		}
+		
+		// generate a new JWT and cryptographically sign
+		const token = jwt.sign(payload, process.env.JWT_SECRET)
+
+		// sends a Set-Cookie header with the value of the token
+		res.cookie("token", token)
+		
 		res.json({
 			message: `Welcome ${user.username}!`,
 		})
